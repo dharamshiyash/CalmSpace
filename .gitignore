@@ -1,0 +1,60 @@
+# ------------------------
+# Node / React dependencies
+# ------------------------
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+yarn.lock
+
+# ------------------------
+# Build / Cache
+# ------------------------
+build/
+dist/
+.cache/
+coverage/
+
+# ------------------------
+# Environment files
+# ------------------------
+.env
+.env.*
+*.env
+
+# ------------------------
+# Backend-specific
+# ------------------------
+backend/uploads/
+backend/node_modules/
+
+# ------------------------
+# Python ML service
+# ------------------------
+__pycache__/
+*.pyc
+ml_service/.venv/
+ml_service/venv/
+ml_service/env/
+ml_service/.mypy_cache/
+ml_service/.pytest_cache/
+ml_service/.ipynb_checkpoints/
+
+# ------------------------
+# Model files (large)
+# ------------------------
+fine_tuned_emotion_model_revised/*.safetensors
+fine_tuned_emotion_model_revised/*.bin
+
+# ------------------------
+# macOS and IDE files
+# ------------------------
+.DS_Store
+.AppleDouble
+.LSOverride
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+pat-eaqd-icw

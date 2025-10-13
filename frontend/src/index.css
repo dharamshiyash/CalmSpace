@@ -1,0 +1,147 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+/* Theme CSS Variables */
+:root {
+  /* Default theme (Warm Uplift) */
+  --bg-primary: #f8fafc;
+  --bg-secondary: #f1f5f9;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border-color: #e2e8f0;
+  --primary-50: #fff6f3;
+  --primary-100: #ffe8e1;
+  --primary-200: #ffd2c6;
+  --primary-300: #ffb8a8;
+  --primary-400: #ff9a7a;
+  --primary-500: #ff7856;
+  --primary-600: #ef6444;
+  --primary-700: #dc4a2a;
+  --primary-800: #b91c1c;
+  --primary-900: #991b1b;
+}
+
+/* Warm Uplift Theme */
+[data-theme="warm"] {
+  --bg-primary: #fff6f3;
+  --bg-secondary: #ffe8e1;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border-color: #ffd2c6;
+  --primary-50: #fff6f3;
+  --primary-100: #ffe8e1;
+  --primary-200: #ffd2c6;
+  --primary-300: #ffb8a8;
+  --primary-400: #ff9a7a;
+  --primary-500: #ff7856;
+  --primary-600: #ef6444;
+  --primary-700: #dc4a2a;
+  --primary-800: #b91c1c;
+  --primary-900: #991b1b;
+}
+
+/* Calm Dawn Theme */
+[data-theme="calm"] {
+  --bg-primary: #f6fbff;
+  --bg-secondary: #e7f4ff;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border-color: #cfe9ff;
+  --primary-50: #f6fbff;
+  --primary-100: #e7f4ff;
+  --primary-200: #cfe9ff;
+  --primary-300: #b3d9ff;
+  --primary-400: #8cc5ff;
+  --primary-500: #6ab1ff;
+  --primary-600: #4d97e6;
+  --primary-700: #3b7bc7;
+  --primary-800: #2d5aa0;
+  --primary-900: #1e3a73;
+}
+
+/* Mint Fresh Theme */
+[data-theme="mint"] {
+  --bg-primary: #f4fbf8;
+  --bg-secondary: #e6f7f0;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border-color: #c7eddc;
+  --primary-50: #f4fbf8;
+  --primary-100: #e6f7f0;
+  --primary-200: #c7eddc;
+  --primary-300: #a8e3c8;
+  --primary-400: #7dd4b0;
+  --primary-500: #5acb99;
+  --primary-600: #42b184;
+  --primary-700: #35906f;
+  --primary-800: #2a7159;
+  --primary-900: #1e5243;
+}
+
+/* Lavender Dream Theme */
+[data-theme="lavender"] {
+  --bg-primary: #faf9ff;
+  --bg-secondary: #f3f0ff;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border-color: #e9e3ff;
+  --primary-50: #faf9ff;
+  --primary-100: #f3f0ff;
+  --primary-200: #e9e3ff;
+  --primary-300: #d6caff;
+  --primary-400: #c4b1ff;
+  --primary-500: #9c88ff;
+  --primary-600: #8c7ae6;
+  --primary-700: #7c6bcc;
+  --primary-800: #6c5ce7;
+  --primary-900: #5b4bc7;
+}
+
+/* Rose Garden Theme */
+[data-theme="rose"] {
+  --bg-primary: #fff9fb;
+  --bg-secondary: #ffeef2;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border-color: #fce4ec;
+  --primary-50: #fff9fb;
+  --primary-100: #ffeef2;
+  --primary-200: #fce4ec;
+  --primary-300: #f8bbd9;
+  --primary-400: #f48fb1;
+  --primary-500: #fd79a8;
+  --primary-600: #e84393;
+  --primary-700: #c2185b;
+  --primary-800: #ad1457;
+  --primary-900: #880e4f;
+}
+
+/* Sunset Glow Theme */
+[data-theme="sunset"] {
+  --bg-primary: #fff8f5;
+  --bg-secondary: #fff2e6;
+  --text-primary: #1e293b;
+  --text-secondary: #64748b;
+  --border-color: #ffe0b2;
+  --primary-50: #fff8f5;
+  --primary-100: #fff2e6;
+  --primary-200: #ffe0b2;
+  --primary-300: #ffcc80;
+  --primary-400: #ffb74d;
+  --primary-500: #ff7675;
+  --primary-600: #fdcb6e;
+  --primary-700: #e17055;
+  --primary-800: #d63031;
+  --primary-900: #b71c1c;
+}

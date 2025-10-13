@@ -1,0 +1,139 @@
+/* src/pages/auth.css */
+/* If you already have tokens in :root from landing.css, keep only overrides below. */
+:root{
+  --brand-50:#fff6f3; --brand-100:#ffe8e1; --brand-200:#ffd2c6;
+  --brand-500:#ff7856; --brand-600:#ef6444;
+  --text-900:#0e1116; --text-700:#2d3342; --text-600:#3a4152; --text-500:#515a6b;
+  --paper:#f7f8fa; --white:#fff;
+
+  --primary: var(--brand-500);
+  --primary-100: var(--brand-100);
+
+  --r-sm:10px; --r-md:14px; --r-lg:18px; --r-xl:22px; --r-pill:999px;
+  --space-2:8px; --space-3:12px; --space-4:16px; --space-5:20px; --space-6:24px; --space-7:32px; --space-8:40px; --space-10:64px;
+
+  --fs-sm:14px; --fs-md:16px; --fs-lg:18px; --fs-xl:22px; --fs-2xl:28px; --fs-3xl:34px;
+  --lh:1.5;
+
+  --shadow-1:0 1px 2px rgba(16,24,40,.08);
+  --shadow-2:0 4px 10px rgba(16,24,40,.10);
+  --shadow-3:0 10px 24px rgba(16,24,40,.12);
+  --shadow-focus:0 0 0 3px rgba(255,120,86,.25);
+
+  --ease:cubic-bezier(.2,.8,.2,1);
+}
+
+*{box-sizing:border-box}
+html,body,#root{height:100%}
+body{margin:0; font:400 var(--fs-md)/var(--lh) system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif; color:var(--text-900); background:var(--paper)}
+
+a{color:var(--text-600); text-decoration:none}
+a:hover{color:var(--text-900)}
+
+.btn{
+  font-weight:600; font-size:var(--fs-md);
+  padding:12px 18px; border-radius:var(--r-md); border:1px solid transparent;
+  background:transparent; cursor:pointer; transition:transform .12s var(--ease), box-shadow .12s var(--ease);
+}
+.btn:hover{transform:translateY(-1px)}
+.btn:focus-visible{outline:none; box-shadow:var(--shadow-focus)}
+.btn-primary{background:var(--primary); color:#fff; box-shadow:var(--shadow-2)}
+.btn-ghost{border:1px solid rgba(16,24,40,.12); color:var(--text-900); background:#fff}
+.btn-google{
+  background:#fff; color:#374151; border:1px solid #d1d5db; 
+  display:flex; align-items:center; justify-content:center; gap:8px;
+  box-shadow:var(--shadow-1);
+}
+.btn-google:hover{background:#f9fafb; border-color:#9ca3af}
+.btn-lg{padding:14px 22px; border-radius:var(--r-lg)}
+.w-100{width:100%}
+
+.google-icon{margin-right:4px}
+
+/* Page */
+.auth{
+  min-height:100%;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  background:linear-gradient(180deg, var(--brand-50) 0%, var(--brand-100) 100%);
+}
+
+.auth-header{
+  width:100%; padding:16px 24px; display:flex; justify-content:center;
+}
+.brand{display:flex; align-items:center; gap:10px; font-weight:800; color:var(--text-900)}
+.brand-dot{width:12px; height:12px; border-radius:50%; background:var(--primary)}
+.brand img{
+  width:24px; height:24px; border-radius:50%;
+}
+/* Card */
+.auth-card{
+  width:100%; max-width: 560px;
+  background:#fff; border:1px solid rgba(16,24,40,.08); border-radius:24px;
+  box-shadow:var(--shadow-3);
+  padding: var(--space-8);
+}
+
+.auth-tabs{
+  display:flex; gap:8px; background: #fafbfc; border-radius: var(--r-pill);
+  padding:6px; width:max-content; margin:0 auto var(--space-6);
+}
+.tab{
+  padding:10px 16px; border-radius: var(--r-pill);
+  font-weight:600; color:var(--text-600);
+}
+.tab.is-active{ background:#fff; color:var(--text-900); box-shadow: var(--shadow-1); border:1px solid rgba(16,24,40,.06); }
+
+.auth-title{margin:0 0 4px; text-align:center; font-size:var(--fs-3xl); letter-spacing:-.01em}
+.auth-sub{margin:0 0 var(--space-7); text-align:center; color:var(--text-600)}
+
+.auth-form{display:grid; gap:16px}
+.field{display:grid; gap:8px}
+.label{font-weight:600}
+.label-row{display:flex; justify-content:space-between; align-items:center}
+.hint{font-size:var(--fs-sm); color:var(--text-500)}
+
+.input{
+  width:100%; padding:12px 14px; border-radius:var(--r-md);
+  background:#fff; border:1px solid rgba(16,24,40,.12); box-shadow:var(--shadow-1);
+  font-size:var(--fs-md);
+}
+.input:focus{outline:none; border-color:var(--primary); box-shadow:var(--shadow-focus)}
+
+.pass-wrap{position:relative}
+.pass-toggle{
+  position:absolute; right:8px; top:50%; transform:translateY(-50%);
+  padding:6px 10px; border-radius:var(--r-pill); border:1px solid rgba(16,24,40,.06); background:#fff; color:var(--text-600);
+}
+
+.row-between{display:flex; justify-content:space-between; align-items:center}
+.check{display:flex; align-items:center; gap:8px}
+.link{background:none; border:none; color:var(--primary); padding:0; cursor:pointer; font-weight:600}
+.link:hover{opacity:.85}
+
+.divider{display:grid; place-items:center; margin:8px 0}
+.divider span{display:inline-block; padding:0 12px; color:var(--text-500); position:relative}
+.divider span::before, .divider span::after{
+  content:""; position:absolute; top:50%; width:120px; height:1px; background:rgba(16,24,40,.12);
+}
+.divider span::before{right:100%} .divider span::after{left:100%}
+
+.social{display:grid; gap:10px; grid-template-columns:1fr}
+.switch{margin:8px 0 0; text-align:center; color:var(--text-600)}
+
+.error-message{
+  background:#fef2f2; border:1px solid #fecaca; color:#dc2626;
+  padding:12px 16px; border-radius:var(--r-md); margin-bottom:16px;
+  text-align:center; font-size:var(--fs-sm);
+}
+
+/* Footer */
+.auth-footer{
+  width:100%; display:flex; gap:16px; justify-content:center; align-items:center;
+  padding:24px; color:var(--text-600)
+}
+
+/* Responsive */
+@media (max-width:600px){
+  .auth-card{border-radius:18px; padding: var(--space-6)}
+  .auth-title{font-size:var(--fs-2xl)}
+}
