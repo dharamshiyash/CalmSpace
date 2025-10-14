@@ -1,8 +1,8 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "https://calmspace-backend-b00s.onrender.com", // backend base URL
-  withCredentials: true, // allow cookies
+  baseURL: "https://calmspace-backend-b00s.onrender.com/api", // add /api here
+  withCredentials: true,
 });
 
 export const registerUser = (data) => API.post("/auth/register", data);
