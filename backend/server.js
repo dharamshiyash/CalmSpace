@@ -42,7 +42,10 @@ app.use(passport.session());
 
 // Enable CORS for frontend (adjust origin as needed)
 app.use(cors({
-  origin: "http://localhost:3000",
+  origin: [
+    "https://calm-space-lilac.vercel.app", 
+    "http://localhost:3000"                 
+  ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With'],
