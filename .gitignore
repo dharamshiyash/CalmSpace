@@ -44,7 +44,6 @@ ml_service/.ipynb_checkpoints/
 # ------------------------
 # Model files (large)
 # ------------------------
-fine_tuned_emotion_model_revised/*.safetensors
 fine_tuned_emotion_model_revised/*.bin
 
 # ------------------------
