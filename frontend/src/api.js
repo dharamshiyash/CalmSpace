@@ -1,7 +1,7 @@
 import axios from "axios";
 
 const API = axios.create({
-  baseURL: "http://localhost:5001/api", // backend base URL
+  baseURL: "https://calmspace-backend-b00s.onrender.com", // backend base URL
   withCredentials: true, // allow cookies
 });
 
