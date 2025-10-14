@@ -1,4 +1,3 @@
-// server.js
 require("dotenv").config();
 const express = require("express");
 const cookieParser = require("cookie-parser");
@@ -7,6 +6,8 @@ const path = require("path");
 const fetch = require("node-fetch");
 const passport = require("passport");
 const session = require("express-session");
+const MongoStore = require("connect-mongo");
+
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const journalRoutes = require("./routes/journalRoutes");
@@ -18,20 +19,24 @@ const PORT = process.env.PORT || 5001;
 // ✅ Connect to MongoDB
 connectDB()
   .then(() => console.log("✅ Connected to MongoDB Atlas"))
-  .catch(err => {
-    console.error("❌ Database connection failed:", err.message);
-  });
+  .catch(err => console.error("❌ Database connection failed:", err.message));
 
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ Session configuration for Passport
+// ✅ Session configuration (production-ready with MongoStore)
 app.use(session({
   secret: process.env.SESSION_SECRET || "your-session-secret",
   resave: false,
   saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: process.env.MONGO_URI,
+    collectionName: "sessions",
+  }),
   cookie: {
-    secure: process.env.NODE_ENV === "production",
+    secure: process.env.NODE_ENV === "production", // only HTTPS in production
+    httpOnly: true,
+    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
   }
 }));
@@ -39,21 +44,18 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
-// ✅ CORS configuration (frontend on Vercel)
+// ✅ CORS configuration
 app.use(cors({
   origin: [
-    "https://calm-space-lilac.vercel.app", // deployed frontend
-    "http://localhost:3000"                // local dev (optional)
+    "https://calm-space-lilac.vercel.app",
+    "http://localhost:3000"
   ],
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With'],
-  exposedHeaders: ['Set-Cookie']
+  credentials: true
 }));
 
-app.options('*', cors());
+app.options("*", cors());
 
-// ✅ Static files (uploads)
+// ✅ Static files
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ✅ Routes
@@ -65,7 +67,7 @@ app.use("/api/profile", profileRoutes);
 const ML_BASE_URL = "https://calmspace-aob4.onrender.com";
 
 // -------------------------------------------------------------
-// ML Service Connection Test (runs once on startup)
+// ML Service Connection Test
 // -------------------------------------------------------------
 (async () => {
   try {
@@ -80,15 +82,21 @@ const ML_BASE_URL = "https://calmspace-aob4.onrender.com";
   }
 })();
 
-// ✅ Proxy routes to ML Service
+// ✅ ML proxy routes
 app.post("/api/emotion", async (req, res) => {
-  const { text } = req.body;
   try {
     const response = await fetch(`${ML_BASE_URL}/predict`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify(req.body),
     });
+
+    if (!response.ok) {
+      const text = await response.text();
+      console.error("ML Service error:", response.status, text);
+      return res.status(500).json({ error: "ML service returned error" });
+    }
+
     const data = await response.json();
     res.json(data);
   } catch (err) {
@@ -98,13 +106,19 @@ app.post("/api/emotion", async (req, res) => {
 });
 
 app.post("/api/emotion/support", async (req, res) => {
-  const { text, mood } = req.body || {};
   try {
     const response = await fetch(`${ML_BASE_URL}/support`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text, mood }),
+      body: JSON.stringify(req.body),
     });
+
+    if (!response.ok) {
+      const text = await response.text();
+      console.error("ML Support Service error:", response.status, text);
+      return res.status(500).json({ error: "ML support service returned error" });
+    }
+
     const data = await response.json();
     res.json(data);
   } catch (err) {
@@ -116,8 +130,6 @@ app.post("/api/emotion/support", async (req, res) => {
 // ✅ Root route
 app.get("/", (req, res) => {
   res.send("✅ CalmSpace backend running and connected to frontend & ML service");
-  console.log("🌐 Frontend connected successfully at https://calm-space-lilac.vercel.app");
-  console.log("🤖 ML Service available at:", ML_BASE_URL);
 });
 
 // ✅ Start server
