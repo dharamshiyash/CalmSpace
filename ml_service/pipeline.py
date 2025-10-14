@@ -14,7 +14,7 @@ from langchain.output_parsers import StructuredOutputParser, ResponseSchema
 # Load fine-tuned DistilBERT (already exported)
 # ------------------------------------------------
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))   # current folder
-model_path = os.path.join(BASE_DIR, "/Users/yashdharamshi/Desktop/PBL/PBL_mern_copy2/fine_tuned_emotion_model_revised")
+model_path = os.path.join(BASE_DIR, "../fine_tuned_emotion_model_revised")
 
 if not os.path.isdir(model_path):
     raise FileNotFoundError(f"❌ Model directory not found: {model_path}\n"
@@ -115,3 +115,4 @@ if __name__ == "__main__":
     text = "I feel anxious and overwhelmed before my exam."
     result = emotion_support_pipeline(text)
     print(json.dumps(result, indent=2))
+
