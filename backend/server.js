@@ -1,4 +1,7 @@
+// ✅ Load environment variables
 require("dotenv").config();
+
+// ✅ Core modules
 const express = require("express");
 const cookieParser = require("cookie-parser");
 const cors = require("cors");
@@ -8,23 +11,47 @@ const passport = require("passport");
 const session = require("express-session");
 const MongoStore = require("connect-mongo");
 
+// ✅ Local imports
 const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const journalRoutes = require("./routes/journalRoutes");
 const profileRoutes = require("./routes/profileRoutes");
 
+// ✅ Initialize app
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-// ✅ Connect to MongoDB
+// -------------------------------------------------------------
+// 🔗 Connect to MongoDB Atlas
+// -------------------------------------------------------------
 connectDB()
   .then(() => console.log("✅ Connected to MongoDB Atlas"))
   .catch(err => console.error("❌ Database connection failed:", err.message));
 
+// -------------------------------------------------------------
+// 🌍 CORS Configuration — must come BEFORE cookies/sessions
+// -------------------------------------------------------------
+app.use(cors({
+  origin: [
+    "https://calm-space-lilac.vercel.app", // Frontend (Vercel)
+    "http://localhost:3000"                // Local dev
+  ],
+  credentials: true,                       // Allow cookies to be sent
+}));
+
+app.options("*", cors()); // Preflight support
+
+// -------------------------------------------------------------
+// 🧠 Middleware
+// -------------------------------------------------------------
 app.use(express.json());
 app.use(cookieParser());
 
-// ✅ Session configuration (production-ready with MongoStore)
+// -------------------------------------------------------------
+// 🛡️ Session Configuration
+// -------------------------------------------------------------
+app.set("trust proxy", 1); // Required for secure cookies behind Render’s proxy
+
 app.use(session({
   secret: process.env.SESSION_SECRET || "your-session-secret",
   resave: false,
@@ -34,41 +61,37 @@ app.use(session({
     collectionName: "sessions",
   }),
   cookie: {
-    secure: process.env.NODE_ENV === "production", // only HTTPS in production
-    httpOnly: true,
-    sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
-    maxAge: 7 * 24 * 60 * 60 * 1000 // 7 days
-  }
+    secure: true,           // ✅ HTTPS only (Render provides HTTPS)
+    httpOnly: true,         // ✅ Cannot be accessed by JS
+    sameSite: "none",       // ✅ Allow cross-site cookie (Render ↔ Vercel)
+    maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+  },
 }));
 
+// -------------------------------------------------------------
+// 🔐 Passport Middleware
+// -------------------------------------------------------------
 app.use(passport.initialize());
 app.use(passport.session());
 
-// ✅ CORS configuration
-app.use(cors({
-  origin: [
-    "https://calm-space-lilac.vercel.app",
-    "http://localhost:3000"
-  ],
-  credentials: true
-}));
-
-app.options("*", cors());
-
-// ✅ Static files
+// -------------------------------------------------------------
+// 🗂️ Static Files
+// -------------------------------------------------------------
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
-// ✅ Routes
+// -------------------------------------------------------------
+// 🛣️ API Routes
+// -------------------------------------------------------------
 app.use("/api/auth", authRoutes);
 app.use("/api/journal", journalRoutes);
 app.use("/api/profile", profileRoutes);
 
-// ✅ ML Service Base URL
+// -------------------------------------------------------------
+// 🤖 ML Service Proxy
+// -------------------------------------------------------------
 const ML_BASE_URL = "https://calmspace-aob4.onrender.com";
 
-// -------------------------------------------------------------
-// ML Service Connection Test
-// -------------------------------------------------------------
+// 🔍 Test connection to ML Service
 (async () => {
   try {
     const res = await fetch(`${ML_BASE_URL}/docs`);
@@ -82,7 +105,7 @@ const ML_BASE_URL = "https://calmspace-aob4.onrender.com";
   }
 })();
 
-// ✅ ML proxy routes
+// 🧠 Emotion Prediction Endpoint
 app.post("/api/emotion", async (req, res) => {
   try {
     const response = await fetch(`${ML_BASE_URL}/predict`, {
@@ -105,6 +128,7 @@ app.post("/api/emotion", async (req, res) => {
   }
 });
 
+// 🧘 Support Route (Recommendation)
 app.post("/api/emotion/support", async (req, res) => {
   try {
     const response = await fetch(`${ML_BASE_URL}/support`, {
@@ -127,12 +151,16 @@ app.post("/api/emotion/support", async (req, res) => {
   }
 });
 
-// ✅ Root route
+// -------------------------------------------------------------
+// 🏠 Root Route
+// -------------------------------------------------------------
 app.get("/", (req, res) => {
   res.send("✅ CalmSpace backend running and connected to frontend & ML service");
 });
 
-// ✅ Start server
+// -------------------------------------------------------------
+// 🚀 Start Server
+// -------------------------------------------------------------
 app.listen(PORT, () => {
   console.log(`🚀 Backend live on port ${PORT}`);
   console.log("🌐 Frontend:", "https://calm-space-lilac.vercel.app");
