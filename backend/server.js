@@ -11,21 +11,21 @@ const connectDB = require("./config/db");
 const authRoutes = require("./routes/authRoutes");
 const journalRoutes = require("./routes/journalRoutes");
 const profileRoutes = require("./routes/profileRoutes");
-// const googleAuthRoutes = require("./routes/googleAuthRoutes"); // Disabled
 
 const app = express();
 const PORT = process.env.PORT || 5001;
 
-// Connect to database (with error handling)
-connectDB().catch(err => {
-  console.error("Database connection failed:", err.message);
-  console.log("Server will continue without database connection for testing");
-});
+// ✅ Connect to MongoDB
+connectDB()
+  .then(() => console.log("✅ Connected to MongoDB Atlas"))
+  .catch(err => {
+    console.error("❌ Database connection failed:", err.message);
+  });
 
 app.use(express.json());
 app.use(cookieParser());
 
-// Session configuration for Passport
+// ✅ Session configuration for Passport
 app.use(session({
   secret: process.env.SESSION_SECRET || "your-session-secret",
   resave: false,
@@ -36,40 +36,55 @@ app.use(session({
   }
 }));
 
-// Initialize Passport
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Enable CORS for frontend (adjust origin as needed)
+// ✅ CORS configuration (frontend on Vercel)
 app.use(cors({
   origin: [
-    "https://calm-space-lilac.vercel.app", 
-    "http://localhost:3000"                 
+    "https://calm-space-lilac.vercel.app", // deployed frontend
+    "http://localhost:3000"                // local dev (optional)
   ],
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Cookie', 'X-Requested-With'],
-  exposedHeaders: ['Set-Cookie'],
-  preflightContinue: false,
-  optionsSuccessStatus: 200
+  exposedHeaders: ['Set-Cookie']
 }));
 
-// Handle preflight requests explicitly
 app.options('*', cors());
 
-// Serve static files from uploads directory
+// ✅ Static files (uploads)
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
+// ✅ Routes
 app.use("/api/auth", authRoutes);
-// app.use("/api/auth", googleAuthRoutes); // Disabled
 app.use("/api/journal", journalRoutes);
 app.use("/api/profile", profileRoutes);
 
-// Proxy request from frontend → backend → ML service
+// ✅ ML Service Base URL
+const ML_BASE_URL = "https://calmspace-aob4.onrender.com";
+
+// -------------------------------------------------------------
+// ML Service Connection Test (runs once on startup)
+// -------------------------------------------------------------
+(async () => {
+  try {
+    const res = await fetch(`${ML_BASE_URL}/docs`);
+    if (res.ok) {
+      console.log(`🤖 Connected successfully to ML Service at ${ML_BASE_URL}`);
+    } else {
+      console.warn(`⚠️ Could not verify ML Service (status ${res.status})`);
+    }
+  } catch (err) {
+    console.warn("⚠️ ML Service not reachable:", err.message);
+  }
+})();
+
+// ✅ Proxy routes to ML Service
 app.post("/api/emotion", async (req, res) => {
   const { text } = req.body;
   try {
-    const response = await fetch("http://localhost:8000/predict", {
+    const response = await fetch(`${ML_BASE_URL}/predict`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text }),
@@ -77,15 +92,15 @@ app.post("/api/emotion", async (req, res) => {
     const data = await response.json();
     res.json(data);
   } catch (err) {
+    console.error("❌ Error connecting to ML service:", err);
     res.status(500).json({ error: "Error connecting to ML service" });
   }
 });
 
-// New proxy: text + mood → ML service support pipeline
 app.post("/api/emotion/support", async (req, res) => {
   const { text, mood } = req.body || {};
   try {
-    const response = await fetch("http://localhost:8000/support", {
+    const response = await fetch(`${ML_BASE_URL}/support`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text, mood }),
@@ -93,13 +108,21 @@ app.post("/api/emotion/support", async (req, res) => {
     const data = await response.json();
     res.json(data);
   } catch (err) {
+    console.error("❌ Error connecting to ML support service:", err);
     res.status(500).json({ error: "Error connecting to ML support service" });
   }
 });
 
-// basic root
-app.get("/", (req, res) => res.send("MERN Auth OTP backend running"));
+// ✅ Root route
+app.get("/", (req, res) => {
+  res.send("✅ CalmSpace backend running and connected to frontend & ML service");
+  console.log("🌐 Frontend connected successfully at https://calm-space-lilac.vercel.app");
+  console.log("🤖 ML Service available at:", ML_BASE_URL);
+});
 
+// ✅ Start server
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Backend live on port ${PORT}`);
+  console.log("🌐 Frontend:", "https://calm-space-lilac.vercel.app");
+  console.log("🤖 ML Service:", ML_BASE_URL);
 });
