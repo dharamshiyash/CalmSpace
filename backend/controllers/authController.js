@@ -7,6 +7,7 @@ const { sendEmail } = require("../utils/sendEmail");
 
 const SALT_ROUNDS = 10;
 
+// ------------------- REGISTER -------------------
 exports.register = async (req, res) => {
   try {
     const { username, email, password } = req.body;
@@ -38,7 +39,6 @@ exports.register = async (req, res) => {
       await sendEmail({ to: email, subject, text, html });
     } catch (emailErr) {
       console.error("Failed to send OTP email:", emailErr);
-      // Do not expose internal errors
     }
 
     return res.status(201).json({ message: "Registered. Verification code sent to your email." });
@@ -48,6 +48,7 @@ exports.register = async (req, res) => {
   }
 };
 
+// ------------------- VERIFY OTP -------------------
 exports.verifyOTP = async (req, res) => {
   try {
     const { email, otp } = req.body;
@@ -56,11 +57,11 @@ exports.verifyOTP = async (req, res) => {
     const user = await User.findOne({ email });
     if (!user) return res.status(400).json({ message: "User not found" });
     if (user.isVerified) return res.status(400).json({ message: "User already verified" });
-
-    if (!user.otp || !user.otpExpiresAt) return res.status(400).json({ message: "No OTP found for user" });
+    if (!user.otp || !user.otpExpiresAt)
+      return res.status(400).json({ message: "No OTP found for user" });
 
     if (user.otpExpiresAt < new Date()) {
-      return res.status(400).json({ message: "OTP expired. Please register again to get a new OTP." });
+      return res.status(400).json({ message: "OTP expired. Please register again." });
     }
 
     if (user.otp !== otp) return res.status(400).json({ message: "Incorrect OTP" });
@@ -77,111 +78,135 @@ exports.verifyOTP = async (req, res) => {
   }
 };
 
+// ------------------- LOGIN -------------------
 exports.login = async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ message: "Email and password required" });
+    if (!email || !password)
+      return res.status(400).json({ message: "Email and password required" });
 
     const user = await User.findOne({ email });
-    if (!user) return res.status(400).json({ message: "Invalid credentials" });
-    if (!user.isVerified) return res.status(403).json({ message: "Email not verified. Please verify OTP first." });
+    if (!user)
+      return res.status(400).json({ message: "Invalid credentials" });
+    if (!user.isVerified)
+      return res.status(403).json({ message: "Email not verified. Please verify OTP first." });
 
     const match = await bcrypt.compare(password, user.password);
-    if (!match) return res.status(400).json({ message: "Invalid credentials" });
+    if (!match)
+      return res.status(400).json({ message: "Invalid credentials" });
 
+    // Create JWT
     const payload = { id: user._id, email: user.email };
-    const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: process.env.JWT_EXPIRES_IN || "7d" });
-
-    // set cookie
-    res.cookie(process.env.COOKIE_NAME || "token", token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
-      maxAge: 1000 * 60 * 60 * 24 * 7 // 7 days
+    const token = jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRES_IN || "7d",
     });
 
-    return res.json({ message: "Logged in" });
+    // ✅ Set cookie with correct cross-domain settings
+    res.cookie(process.env.COOKIE_NAME || "token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production", // HTTPS only on Render
+      sameSite: "none", // Allow cross-site (Render ↔ Vercel)
+      maxAge: 1000 * 60 * 60 * 24 * 7, // 7 days
+    });
+
+    return res.json({
+      message: "Logged in successfully",
+      user: { id: user._id, email: user.email, username: user.username },
+    });
   } catch (err) {
     console.error("Login error:", err);
     return res.status(500).json({ message: "Server error" });
   }
 };
 
+// ------------------- LOGOUT -------------------
 exports.logout = async (req, res) => {
-  res.clearCookie(process.env.COOKIE_NAME || "token");
+  res.clearCookie(process.env.COOKIE_NAME || "token", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "none",
+  });
   return res.json({ message: "Logged out" });
 };
 
+// ------------------- PROTECTED ROUTE -------------------
 exports.protected = async (req, res) => {
-  // authMiddleware attaches req.user
   try {
-    const user = await User.findById(req.user.id).select('-password -otp -otpExpiresAt');
+    // ✅ Decode JWT from cookie directly
+    const token = req.cookies[process.env.COOKIE_NAME || "token"];
+    if (!token) return res.status(401).json({ message: "Not authenticated" });
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id).select("-password -otp -otpExpiresAt");
+    if (!user) return res.status(401).json({ message: "User not found" });
+
     return res.json({ message: "Protected data", user });
   } catch (err) {
-    console.error("Protected error:", err);
-    return res.status(500).json({ message: "Server error" });
+    console.error("Protected route error:", err);
+    return res.status(401).json({ message: "Invalid or expired token" });
   }
 };
 
+// ------------------- UPDATE PROFILE -------------------
 exports.updateProfile = async (req, res) => {
   try {
-    const { username, email } = req.body;
-    const userId = req.user.id;
+    // ✅ Verify token first
+    const token = req.cookies[process.env.COOKIE_NAME || "token"];
+    if (!token) return res.status(401).json({ message: "Not authenticated" });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.id;
 
-    if (!username && !email) {
+    const { username, email } = req.body;
+    if (!username && !email)
       return res.status(400).json({ message: "At least one field is required" });
-    }
 
     const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    if (!user) return res.status(404).json({ message: "User not found" });
 
-    // Check if email is being changed and if it's already taken
+    // Check email conflict
     if (email && email !== user.email) {
       const existingUser = await User.findOne({ email });
-      if (existingUser) {
+      if (existingUser)
         return res.status(400).json({ message: "Email already in use" });
-      }
     }
 
-    // Update fields
     if (username) user.username = username;
     if (email) user.email = email;
 
     await user.save();
+    const updatedUser = await User.findById(userId).select("-password -otp -otpExpiresAt");
 
-    // Return updated user without sensitive data
-    const updatedUser = await User.findById(userId).select('-password -otp -otpExpiresAt');
-    
-    return res.json({ 
-      message: "Profile updated successfully", 
-      user: updatedUser 
-    });
+    return res.json({ message: "Profile updated successfully", user: updatedUser });
   } catch (err) {
     console.error("Update profile error:", err);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(401).json({ message: "Invalid or expired token" });
   }
 };
 
+// ------------------- DELETE PROFILE -------------------
 exports.deleteProfile = async (req, res) => {
   try {
-    const userId = req.user.id;
-    
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
+    // ✅ Verify token first
+    const token = req.cookies[process.env.COOKIE_NAME || "token"];
+    if (!token) return res.status(401).json({ message: "Not authenticated" });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const userId = decoded.id;
 
-    // Delete the user
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
     await User.findByIdAndDelete(userId);
 
-    // Clear the cookie
-    res.clearCookie(process.env.COOKIE_NAME || "token");
+    // Clear auth cookie
+    res.clearCookie(process.env.COOKIE_NAME || "token", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "none",
+    });
 
     return res.json({ message: "Account deleted successfully" });
   } catch (err) {
     console.error("Delete profile error:", err);
-    return res.status(500).json({ message: "Server error" });
+    return res.status(401).json({ message: "Invalid or expired token" });
   }
 };
